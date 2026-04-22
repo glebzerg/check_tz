@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТЗ-Чекер · Гайд по n8n</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0b0d12;
+  --surface: #13161f;
+  --surface2: #1a1e2a;
+  --border: rgba(255,255,255,0.07);
+  --text: #dde3f0;
+  --muted: #6b7585;
+  --accent: #7ee8a2;
+  --accent2: #63b3ed;
+  --warn: #f6c90e;
+  --danger: #fc8181;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── SIDEBAR ── */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
+}
+
+.sidebar-logo {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-section {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.75rem 0.75rem 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.sidebar a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.sidebar a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(126,232,162,0.07); }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  padding: 3rem 3.5rem;
+  max-width: 900px;
+}
+
+h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 1rem;
+  margin-bottom: 3rem;
+}
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 4rem;
+  scroll-margin-top: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+h2 .num {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(126,232,162,0.1);
+  border: 1px solid rgba(126,232,162,0.25);
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent2);
+  margin: 1.8rem 0 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+h3::before { content: '▸'; color: var(--accent); font-size: 0.8rem; }
+
+p { color: var(--text); margin-bottom: 0.8rem; }
+p:last-child { margin-bottom: 0; }
+
+/* ── CALLOUT ── */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: rgba(126,232,162,0.06);
+  padding: 0.9rem 1.2rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.2rem 0;
+  font-size: 0.9rem;
+}
+
+.callout.warn {
+  border-color: var(--warn);
+  background: rgba(246,201,14,0.06);
+}
+
+.callout.info {
+  border-color: var(--accent2);
+  background: rgba(99,179,237,0.06);
+}
+
+.callout strong { color: var(--accent); }
+.callout.warn strong { color: var(--warn); }
+.callout.info strong { color: var(--accent2); }
+
+/* ── CODE ── */
+.code-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem 1.4rem;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 1rem 0;
+  position: relative;
+}
+
+.code-block .label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.key { color: #fc8181; }
+.val { color: #68d391; }
+.str { color: #f6c90e; }
+.com { color: #4a5568; font-style: italic; }
+.kw { color: #63b3ed; }
+.fn { color: #b794f4; }
+
+/* ── NODE CARDS ── */
+.nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+
+.node-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1rem 1.4rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+}
+
+.node-card:hover { border-color: rgba(126,232,162,0.25); }
+
+.node-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--surface2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.node-body { flex: 1; }
+
+.node-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.node-type {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--accent2);
+  background: rgba(99,179,237,0.1);
+  border: 1px solid rgba(99,179,237,0.2);
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
+
+.node-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.5rem; }
+
+.node-config {
+  font-size: 0.8rem;
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--surface2);
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+}
+
+.node-config span { color: var(--accent); }
+.node-num {
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  color: var(--bg);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── FLOW DIAGRAM ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+  padding: 1.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.flow-node {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.flow-node .fn-icon { font-size: 1.1rem; display: block; }
+.flow-node .fn-name { color: var(--text); }
+.flow-node .fn-type { color: var(--muted); font-size: 0.65rem; font-family: var(--mono); }
+
+.flow-node.accent { border-color: rgba(126,232,162,0.4); background: rgba(126,232,162,0.08); }
+.flow-node.blue { border-color: rgba(99,179,237,0.4); background: rgba(99,179,237,0.08); }
+.flow-node.yellow { border-color: rgba(246,201,14,0.4); background: rgba(246,201,14,0.08); }
+
+.flow-arrow { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+
+/* ── COMPARISON TABLE ── */
+.comparison {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  font-size: 0.88rem;
+}
+
+.comparison th {
+  background: var(--surface2);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.comparison td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.comparison tr:last-child td { border-bottom: none; }
+.comparison tr:hover td { background: rgba(255,255,255,0.02); }
+
+.badge-paid {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(252,129,129,0.15);
+  color: var(--danger);
+  border: 1px solid rgba(252,129,129,0.25);
+  font-family: var(--mono);
+}
+
+.badge-free {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(126,232,162,0.12);
+  color: var(--accent);
+  border: 1px solid rgba(126,232,162,0.25);
+  font-family: var(--mono);
+}
+
+/* ── CHECKLIST ── */
+.checklist { list-style: none; margin: 0.8rem 0; }
+.checklist li {
+  padding: 0.4rem 0;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li::before {
+  content: '□';
+  color: var(--muted);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+/* ── STEP LIST ── */
+.steps-list { list-style: none; counter-reset: steps; margin: 0.8rem 0; }
+.steps-list li {
+  counter-increment: steps;
+  padding: 0.6rem 0 0.6rem 3rem;
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.steps-list li:last-child { border-bottom: none; }
+.steps-list li::before {
+  content: counter(steps);
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 22px;
+  height: 22px;
+  background: var(--accent2);
+  color: var(--bg);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+}
+
+.steps-list li strong { color: var(--accent2); }
+
+/* ── DIVIDER ── */
+hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+
+/* ── TAG ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-family: var(--mono);
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 2rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">ТЗ·Чекер / n8n</div>
+
+  <div class="sidebar-section">Замены сервисов</div>
+  <a href="#replacements">💸 Платное → Бесплатное</a>
+
+  <div class="sidebar-section">Архитектура</div>
+  <a href="#architecture">🗺 Общая схема</a>
+  <a href="#database">🗄 Supabase: таблицы</a>
+
+  <div class="sidebar-section">Воркфлоу 1</div>
+  <a href="#wf1">📥 Приём сообщений</a>
+
+  <div class="sidebar-section">Воркфлоу 2</div>
+  <a href="#wf2">📄 Загрузка ТЗ (RAG)</a>
+
+  <div class="sidebar-section">Воркфлоу 3</div>
+  <a href="#wf3">✅ Проверка поста</a>
+
+  <div class="sidebar-section">Воркфлоу 4</div>
+  <a href="#wf4">🎙 Голосовой ввод</a>
+
+  <div class="sidebar-section">Воркфлоу 5</div>
+  <a href="#wf5">📊 Дашборд / Аналитика</a>
+
+  <div class="sidebar-section">Деплой</div>
+  <a href="#deploy">🚀 GitHub Pages + n8n</a>
+  <a href="#auth">🔐 Авторизация</a>
+  <a href="#checklist">✅ Чеклист критериев</a>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<h1>n8n воркфлоу<br>для ТЗ-Чекера</h1>
+<p class="subtitle">Пошаговое руководство по сборке всего проекта на бесплатных инструментах</p>
+
+<!-- ── ЗАМЕНА СЕРВИСОВ ── -->
+<div class="section" id="replacements">
+  <h2><span class="num">00</span> Замена платных сервисов на бесплатные</h2>
+  <p>В отчёте МагоЛего использованы дорогостоящие сервисы. Ниже — полная таблица замен с нулевой стоимостью.</p>
+
+  <table class="comparison">
+    <thead>
+      <tr>
+        <th>Был (платный)</th>
+        <th>Замена (бесплатно)</th>
+        <th>Зачем / Как</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge-paid">Claude API</span><br>~$15/млн токенов</td>
+        <td><span class="badge-free">DeepSeek API</span><br>$0.14/млн input</td>
+        <td>Основная LLM для анализа постов. В n8n — нода HTTP Request на <code>api.deepseek.com/v1/chat/completions</code>. Модель: <code>deepseek-chat</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">OpenAI Whisper API</span><br>$0.006/мин</td>
+        <td><span class="badge-free">faster-whisper</span> (self-hosted)<br>или Groq Whisper (бесплатный tier)</td>
+        <td>STT для голосовых сообщений. Groq даёт 28 800 сек/сутки бесплатно. URL: <code>api.groq.com/openai/v1/audio/transcriptions</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">OpenAI Embeddings</span><br>$0.02/млн</td>
+        <td><span class="badge-free">Jina Embeddings v3</span><br>1M токенов/мес бесплатно</td>
+        <td>Для RAG: превращает ТЗ в векторы. API: <code>api.jina.ai/v1/embeddings</code>. Или <code>deepseek</code> — у них тоже есть embeddings endpoint.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">Pinecone</span><br>$70+/мес</td>
+        <td><span class="badge-free">Supabase pgvector</span><br>Free tier навсегда</td>
+        <td>Векторное хранилище прямо в Supabase. Расширение pgvector уже включено в free tier. Запросы через Supabase HTTP API.</td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">PostHog Cloud</span></td>
+        <td><span class="badge-free">PostHog</span> (free до 1M событий)</td>
+        <td>Аналитика воронки — free tier PostHog вполне достаточен. Просто зарегистрироваться на posthog.com</td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">Flowise / LangChain Cloud</span></td>
+        <td><span class="badge-free">n8n AI Agent нода</span></td>
+        <td>RAG-логика реализуется прямо в n8n через нативные AI-ноды (AI Agent + Vector Store)</td>
+      </tr>
+      <tr>
+        <td><span class="badge-paid">Vercel / Railway</span></td>
+        <td><span class="badge-free">GitHub Pages</span> (лендинг) + n8n self-hosted или n8n.cloud free</td>
+        <td>Лендинг и UI — статика на GitHub Pages. Логика — n8n. БД — Supabase free.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout info">
+    <strong>Итого стоимость:</strong> DeepSeek для 10 000 проверок в месяц обойдётся в ~$1–2. Все остальные сервисы — полностью бесплатны на указанных tier-ах.
+  </div>
+</div>
+
+<!-- ── АРХИТЕКТУРА ── -->
+<div class="section" id="architecture">
+  <h2><span class="num">01</span> Общая архитектура</h2>
+
+  <p>Весь проект состоит из 5 независимых n8n-воркфлоу, статических файлов на GitHub Pages и базы данных в Supabase.</p>
+
+  <div class="flow">
+    <div class="flow-node accent">
+      <span class="fn-icon">📱</span>
+      <span class="fn-name">Telegram</span>
+      <span class="fn-type">Пользователь</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <span class="fn-icon">🔀</span>
+      <span class="fn-name">WF-1: Router</span>
+      <span class="fn-type">Dispatch</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node yellow">
+      <span class="fn-icon">📄</span>
+      <span class="fn-name">WF-2: ТЗ Upload</span>
+      <span class="fn-type">RAG Index</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node blue">
+      <span class="fn-icon">🧠</span>
+      <span class="fn-name">WF-3: Check</span>
+      <span class="fn-type">DeepSeek</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">
+      <span class="fn-icon">🗄️</span>
+      <span class="fn-name">Supabase</span>
+      <span class="fn-type">PostgreSQL</span>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-node">
+      <span class="fn-icon">🎙</span>
+      <span class="fn-name">WF-4: Voice</span>
+      <span class="fn-type">Groq STT</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node blue">
+      <span class="fn-icon">📊</span>
+      <span class="fn-name">WF-5: Dashboard</span>
+      <span class="fn-type">Webhook → UI</span>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node accent">
+      <span class="fn-icon">🌐</span>
+      <span class="fn-name">GitHub Pages</span>
+      <span class="fn-type">UI + Landing</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUPABASE ── -->
+<div class="section" id="database">
+  <h2><span class="num">02</span> Supabase: создание таблиц</h2>
+  <p>Зайди в <strong>Supabase → SQL Editor</strong> и выполни этот скрипт целиком:</p>
+
+  <div class="code-block">
+    <div class="label">SQL → Supabase SQL Editor</div>
+    <pre><span class="com">-- 1. Расширение для векторов (RAG)</span>
+<span class="kw">create extension if not exists</span> vector;
+
+<span class="com">-- 2. Пользователи</span>
+<span class="kw">create table</span> users (
+  id          bigserial <span class="kw">primary key</span>,
+  tg_id       bigint <span class="kw">unique not null</span>,
+  tg_username text,
+  plan        text <span class="kw">default</span> <span class="str">'free'</span>,
+  checks_used int  <span class="kw">default</span> 0,
+  created_at  timestamptz <span class="kw">default</span> now()
+);
+
+<span class="com">-- 3. Технические задания</span>
+<span class="kw">create table</span> tz_docs (
+  id         bigserial <span class="kw">primary key</span>,
+  user_id    bigint <span class="kw">references</span> users(id),
+  title      text,
+  content    text,
+  created_at timestamptz <span class="kw">default</span> now()
+);
+
+<span class="com">-- 4. Чанки ТЗ с эмбеддингами (RAG)</span>
+<span class="kw">create table</span> tz_chunks (
+  id        bigserial <span class="kw">primary key</span>,
+  tz_id     bigint <span class="kw">references</span> tz_docs(id) <span class="kw">on delete cascade</span>,
+  user_id   bigint <span class="kw">references</span> users(id),
+  chunk_idx int,
+  content   text,
+  embedding vector(1024) <span class="com">-- Jina v3 / DeepSeek размер</span>
+);
+
+<span class="com">-- 5. Результаты проверок</span>
+<span class="kw">create table</span> checks (
+  id          bigserial <span class="kw">primary key</span>,
+  user_id     bigint <span class="kw">references</span> users(id),
+  tz_id       bigint <span class="kw">references</span> tz_docs(id),
+  post_text   text,
+  result_json jsonb,
+  score       int,
+  created_at  timestamptz <span class="kw">default</span> now()
+);
+
+<span class="com">-- 6. Аналитика событий воронки</span>
+<span class="kw">create table</span> analytics_events (
+  id         bigserial <span class="kw">primary key</span>,
+  user_id    bigint,
+  event_name text,
+  properties jsonb,
+  created_at timestamptz <span class="kw">default</span> now()
+);
+
+<span class="com">-- Функция векторного поиска</span>
+<span class="kw">create or replace function</span> match_tz_chunks (
+  query_embedding vector(1024),
+  match_user_id   bigint,
+  match_count     int <span class="kw">default</span> 5
+)
+<span class="kw">returns table</span>(id bigint, content text, similarity float)
+<span class="kw">language</span> sql
+<span class="kw">as</span> $$
+  <span class="kw">select</span> id, content,
+    1 - (embedding <=> query_embedding) <span class="kw">as</span> similarity
+  <span class="kw">from</span> tz_chunks
+  <span class="kw">where</span> user_id = match_user_id
+  <span class="kw">order by</span> embedding <=> query_embedding
+  <span class="kw">limit</span> match_count;
+$$;</pre>
+  </div>
+
+  <div class="callout warn">
+    <strong>Важно:</strong> В Supabase → Authentication → Policies включи Row Level Security (RLS) для таблиц users, tz_docs, checks — иначе данные доступны всем.
+  </div>
+</div>
+
+<!-- ── ВОРКФЛОУ 1 ── -->
+<div class="section" id="wf1">
+  <h2><span class="num">03</span> Воркфлоу 1 — Приём и роутинг сообщений</h2>
+  <p>Это главный диспетчер. Все сообщения из Telegram приходят сюда, здесь определяется тип и запускается нужная ветка.</p>
+
+  <div class="nodes">
+
+    <div class="node-card">
+      <div class="node-icon">📱</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">1</span> Telegram Trigger <span class="node-type">Trigger</span></div>
+        <div class="node-desc">Стартовая нода. Получает все входящие апдейты от бота.</div>
+        <div class="node-config">
+          Тип нода: <span>Telegram Trigger</span><br>
+          Updates to Watch: <span>message</span><br>
+          Credential: Telegram API (введи Bot Token от @BotFather)
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">👤</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">2</span> Upsert User <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Регистрирует или обновляет пользователя в Supabase при каждом обращении.</div>
+        <div class="node-config">
+          Method: <span>POST</span><br>
+          URL: <span>https://[project].supabase.co/rest/v1/users</span><br>
+          Header: <span>Prefer: resolution=merge-duplicates</span><br>
+          Body (JSON):<br>
+          <span>{"tg_id": "{{$json.message.from.id}}", "tg_username": "{{$json.message.from.username}}"}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔀</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">3</span> Message Router <span class="node-type">Switch</span></div>
+        <div class="node-desc">Определяет тип сообщения и направляет в нужную ветку.</div>
+        <div class="node-config">
+          Нода: <span>Switch</span><br><br>
+          Ветка 0 — <span>/start или /help</span><br>
+          Условие: <span>{{$json.message.text}} starts with /start</span><br><br>
+          Ветка 1 — <span>Загрузка ТЗ</span><br>
+          Условие: <span>{{$json.message.text}} starts with /upload_tz</span><br><br>
+          Ветка 2 — <span>Проверка поста</span><br>
+          Условие: <span>{{$json.message.text}} starts with /check</span><br><br>
+          Ветка 3 — <span>Голосовое сообщение</span><br>
+          Условие: <span>{{$json.message.voice}} exists</span><br><br>
+          Ветка 4 — <span>Документ (файл ТЗ)</span><br>
+          Условие: <span>{{$json.message.document}} exists</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">👋</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">4</span> Send Welcome <span class="node-type">Telegram</span></div>
+        <div class="node-desc">Ответ на /start. Объясняет как работать с ботом.</div>
+        <div class="node-config">
+          Нода: <span>Telegram → Send Message</span><br>
+          Chat ID: <span>{{$json.message.chat.id}}</span><br>
+          Text: <span>Привет! Я ТЗ-Чекер 🤖\n\n📄 /upload_tz — загрузить ТЗ (текстом или файлом)\n✅ /check [текст поста] — проверить пост\n📊 /stats — моя статистика</span><br>
+          Parse Mode: <span>Markdown</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔗</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">5</span> Call Sub-Workflows <span class="node-type">Execute Workflow</span></div>
+        <div class="node-desc">Для веток 1–4 вызываются соответствующие под-воркфлоу через ноду Execute Workflow.</div>
+        <div class="node-config">
+          Нода: <span>Execute Workflow</span><br>
+          Ветка /upload_tz → <span>Воркфлоу 2 (RAG Upload)</span><br>
+          Ветка /check → <span>Воркфлоу 3 (Check Post)</span><br>
+          Ветка voice → <span>Воркфлоу 4 (Voice STT)</span><br>
+          Режим: <span>Wait for sub-workflow</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ВОРКФЛОУ 2 ── -->
+<div class="section" id="wf2">
+  <h2><span class="num">04</span> Воркфлоу 2 — Загрузка ТЗ (RAG Indexing)</h2>
+  <p>Пользователь присылает текст ТЗ или документ. Воркфлоу нарезает его на чанки, создаёт эмбеддинги и сохраняет в Supabase pgvector.</p>
+
+  <div class="nodes">
+
+    <div class="node-card">
+      <div class="node-icon">📨</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">1</span> Workflow Input <span class="node-type">Execute Workflow Trigger</span></div>
+        <div class="node-desc">Принимает данные от главного воркфлоу.</div>
+        <div class="node-config">
+          Нода: <span>Execute Workflow Trigger</span><br>
+          Входные данные: <span>tg_user_id, message_text, file_id (если документ)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📁</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">2</span> Get File (если документ) <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Скачивает файл из Telegram если пришёл документ вместо текста.</div>
+        <div class="node-config">
+          Нода: <span>HTTP Request</span><br>
+          URL: <span>https://api.telegram.org/bot[TOKEN]/getFile?file_id={{$json.file_id}}</span><br>
+          Далее: GET <span>https://api.telegram.org/file/bot[TOKEN]/{{file_path}}</span><br>
+          <br>Нода: <span>Extract From File</span> (тип: текст или PDF)
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">✂️</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">3</span> Chunk Text <span class="node-type">Code</span></div>
+        <div class="node-desc">Нарезает ТЗ на чанки по 500 символов с перекрытием 100 символов для лучшего поиска.</div>
+        <div class="node-config">
+          Нода: <span>Code (JavaScript)</span><br><br>
+          <span>const text = $input.first().json.tz_text;
+const size = 500, overlap = 100;
+const chunks = [];
+for (let i = 0; i &lt; text.length; i += size - overlap) {
+  chunks.push({ content: text.slice(i, i + size), idx: chunks.length });
+}
+return chunks.map(c => ({json: c}));</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔢</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">4</span> Create Embeddings <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Для каждого чанка создаёт векторное представление через Jina AI (бесплатно 1M токенов/мес).</div>
+        <div class="node-config">
+          Нода: <span>HTTP Request</span><br>
+          Method: <span>POST</span><br>
+          URL: <span>https://api.jina.ai/v1/embeddings</span><br>
+          Header Authorization: <span>Bearer [JINA_API_KEY]</span><br>
+          Body:<br>
+          <span>{"model": "jina-embeddings-v3",
+ "input": ["{{$json.content}}"],
+ "task": "retrieval.passage"}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">💾</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">5</span> Save TZ Doc + Chunks <span class="node-type">HTTP Request × 2</span></div>
+        <div class="node-desc">Сначала создаёт запись ТЗ, затем в цикле сохраняет все чанки с эмбеддингами.</div>
+        <div class="node-config">
+          Нода 5a: <span>HTTP Request → POST /rest/v1/tz_docs</span><br>
+          Body: <span>{"user_id": ..., "title": "ТЗ от [дата]", "content": "..."}</span><br>
+          Header: <span>Prefer: return=representation</span> (чтобы получить новый id)<br><br>
+          Нода 5b: <span>HTTP Request → POST /rest/v1/tz_chunks</span><br>
+          Body: <span>{"tz_id": ..., "user_id": ..., "chunk_idx": ..., "content": ..., "embedding": [...]}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">✅</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">6</span> Confirm to User <span class="node-type">Telegram</span></div>
+        <div class="node-desc">Уведомляет пользователя об успешной загрузке.</div>
+        <div class="node-config">
+          Text: <span>✅ ТЗ загружено! Сохранено {{$json.chunk_count}} фрагментов.\nТеперь отправь /check [текст поста] для проверки.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout">
+    <strong>Альтернатива Jina:</strong> Можно использовать модель <code>text-embedding-3-small</code> от OpenAI (очень дёшево — $0.02/млн) или локальный Ollama с моделью <code>nomic-embed-text</code> если у тебя есть VPS.
+  </div>
+</div>
+
+<!-- ── ВОРКФЛОУ 3 ── -->
+<div class="section" id="wf3">
+  <h2><span class="num">05</span> Воркфлоу 3 — Проверка поста (RAG + DeepSeek)</h2>
+  <p>Ключевой воркфлоу. Получает текст поста, ищет релевантные части ТЗ через векторный поиск и отправляет в DeepSeek для анализа.</p>
+
+  <div class="nodes">
+
+    <div class="node-card">
+      <div class="node-icon">📝</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">1</span> Parse Post Text <span class="node-type">Set</span></div>
+        <div class="node-desc">Извлекает текст поста из команды /check.</div>
+        <div class="node-config">
+          Нода: <span>Set</span><br>
+          post_text: <span>{{$json.message.text.replace('/check', '').trim()}}</span><br>
+          user_tg_id: <span>{{$json.message.from.id}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔢</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">2</span> Embed Query <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Создаёт эмбеддинг для текста поста (для векторного поиска).</div>
+        <div class="node-config">
+          URL: <span>https://api.jina.ai/v1/embeddings</span><br>
+          Body task: <span>"retrieval.query"</span> (!) — другой task чем при индексации<br>
+          Input: <span>["{{$json.post_text}}"]</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔍</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">3</span> Vector Search в Supabase <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Вызывает RPC-функцию match_tz_chunks для поиска релевантных частей ТЗ.</div>
+        <div class="node-config">
+          Method: <span>POST</span><br>
+          URL: <span>https://[project].supabase.co/rest/v1/rpc/match_tz_chunks</span><br>
+          Body:<br>
+          <span>{"query_embedding": {{$json.embedding}},
+ "match_user_id": {{$json.db_user_id}},
+ "match_count": 5}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔧</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">4</span> Build Prompt <span class="node-type">Code</span></div>
+        <div class="node-desc">Собирает финальный промпт из найденных чанков ТЗ и текста поста.</div>
+        <div class="node-config">
+          Нода: <span>Code (JavaScript)</span><br><br>
+          <span>const chunks = $input.all().map(i => i.json.content).join('\n---\n');
+const post = $('Parse Post Text').first().json.post_text;
+
+const prompt = `Ты — строгий проверщик постов блогеров.
+
+ТЕХНИЧЕСКОЕ ЗАДАНИЕ (извлечённые фрагменты):
+${chunks}
+
+ТЕКСТ ПОСТА ДЛЯ ПРОВЕРКИ:
+${post}
+
+Проверь пост по каждому пункту ТЗ. Для каждого критерия выведи:
+✅ ВЫПОЛНЕН — [критерий] — [краткое объяснение]
+❌ НЕ ВЫПОЛНЕН — [критерий] — [что именно отсутствует]
+
+В конце: ИТОГ: X/N критериев выполнено.
+Отвечай только на русском языке.`;
+
+return [{json: {prompt}}];</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🧠</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">5</span> DeepSeek API Call <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Отправляет промпт в DeepSeek и получает анализ поста.</div>
+        <div class="node-config">
+          Method: <span>POST</span><br>
+          URL: <span>https://api.deepseek.com/v1/chat/completions</span><br>
+          Header Authorization: <span>Bearer [DEEPSEEK_API_KEY]</span><br>
+          Body:<br>
+          <span>{"model": "deepseek-chat",
+ "messages": [
+   {"role": "system", "content": "Ты эксперт по проверке контента."},
+   {"role": "user", "content": "{{$json.prompt}}"}
+ ],
+ "max_tokens": 2000,
+ "temperature": 0.1}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📊</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">6</span> Parse Score <span class="node-type">Code</span></div>
+        <div class="node-desc">Извлекает числовой счёт из ответа DeepSeek для сохранения в БД.</div>
+        <div class="node-config">
+          <span>const text = $json.choices[0].message.content;
+const match = text.match(/(\d+)\/(\d+)/);
+const score = match ? parseInt(match[1]) : 0;
+return [{json: {result_text: text, score}}];</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">💾</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">7</span> Save Check Result <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Сохраняет результат проверки в таблицу checks.</div>
+        <div class="node-config">
+          Method: <span>POST</span><br>
+          URL: <span>https://[project].supabase.co/rest/v1/checks</span><br>
+          Body:<br>
+          <span>{"user_id": ..., "tz_id": ...,
+ "post_text": "{{$json.post_text}}",
+ "result_json": {"text": "{{$json.result_text}}"},
+ "score": {{$json.score}}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📤</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">8</span> Send Result to Telegram <span class="node-type">Telegram</span></div>
+        <div class="node-desc">Отправляет отформатированный результат пользователю.</div>
+        <div class="node-config">
+          Chat ID: <span>{{$('Workflow Input').first().json.chat_id}}</span><br>
+          Text: <span>{{$json.result_text}}</span><br>
+          Parse Mode: <span>Markdown</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ВОРКФЛОУ 4 ── -->
+<div class="section" id="wf4">
+  <h2><span class="num">06</span> Воркфлоу 4 — Голосовой ввод (Groq Whisper)</h2>
+  <p>Обрабатывает голосовые сообщения: скачивает аудио из Telegram, транскрибирует через Groq (бесплатно) и передаёт текст в Воркфлоу 3.</p>
+
+  <div class="nodes">
+
+    <div class="node-card">
+      <div class="node-icon">📥</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">1</span> Get Voice File Info <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Получает путь к голосовому файлу через Telegram Bot API.</div>
+        <div class="node-config">
+          URL: <span>https://api.telegram.org/bot[TOKEN]/getFile</span><br>
+          Params: <span>file_id = {{$json.message.voice.file_id}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">⬇️</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">2</span> Download Voice File <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Скачивает .ogg файл с серверов Telegram как бинарные данные.</div>
+        <div class="node-config">
+          URL: <span>https://api.telegram.org/file/bot[TOKEN]/{{$json.result.file_path}}</span><br>
+          Response: <span>Binary (File)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🎙</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">3</span> Groq Whisper STT <span class="node-type">HTTP Request</span></div>
+        <div class="node-desc">Транскрибирует аудио через Groq API (бесплатно 28 800 сек/сутки).</div>
+        <div class="node-config">
+          Method: <span>POST</span><br>
+          URL: <span>https://api.groq.com/openai/v1/audio/transcriptions</span><br>
+          Header Authorization: <span>Bearer [GROQ_API_KEY]</span><br>
+          Body type: <span>multipart/form-data</span><br>
+          Fields:<br>
+          <span>file: [binary из предыдущей ноды]
+model: whisper-large-v3-turbo
+language: ru
+response_format: json</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔗</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">4</span> Pass to Check Workflow <span class="node-type">Execute Workflow</span></div>
+        <div class="node-desc">Передаёт расшифрованный текст в Воркфлоу 3 как обычный пост.</div>
+        <div class="node-config">
+          Нода: <span>Execute Workflow</span><br>
+          Workflow: <span>Воркфлоу 3</span><br>
+          Input: <span>post_text = {{$json.text}}</span> (из ответа Groq)<br>
+          Тип: <span>Голосовое → подставляем как /check</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="callout info">
+    <strong>Регистрация Groq:</strong> Зайди на console.groq.com → API Keys → Create Key. Бесплатный tier включает Whisper и LLM модели (Llama 3, Mixtral). Можно использовать Groq и вместо DeepSeek для ещё большей скорости.
+  </div>
+</div>
+
+<!-- ── ВОРКФЛОУ 5 ── -->
+<div class="section" id="wf5">
+  <h2><span class="num">07</span> Воркфлоу 5 — Дашборд и аналитика</h2>
+  <p>Webhook-эндпоинт для загрузки данных в UI на GitHub Pages. Пользователь открывает страницу — браузер вызывает этот вебхук, получает статистику.</p>
+
+  <div class="nodes">
+
+    <div class="node-card">
+      <div class="node-icon">🌐</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">1</span> Webhook Trigger <span class="node-type">Webhook</span></div>
+        <div class="node-desc">Принимает GET запросы от браузера с Telegram user ID для авторизации.</div>
+        <div class="node-config">
+          Нода: <span>Webhook</span><br>
+          HTTP Method: <span>GET</span><br>
+          Path: <span>/dashboard</span><br>
+          Authentication: <span>None</span> (защита через tg_init_data — см. ниже)<br>
+          Response: <span>Last Node</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">🔐</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">2</span> Validate Telegram Auth <span class="node-type">Code</span></div>
+        <div class="node-desc">Проверяет подпись Telegram WebApp initData для безопасной авторизации.</div>
+        <div class="node-config">
+          Нода: <span>Code (JavaScript)</span><br>
+          Логика: <span>HMAC-SHA256 проверка строки initData с Bot Token как ключом. Если подпись валидна — извлекаем user.id</span><br><br>
+          <span>// Псевдокод проверки:
+const crypto = require('crypto');
+const secret = crypto.createHmac('sha256', 'WebAppData')
+  .update(BOT_TOKEN).digest();
+const hash = crypto.createHmac('sha256', secret)
+  .update(dataCheckString).digest('hex');</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📊</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">3</span> Fetch Stats from Supabase <span class="node-type">HTTP Request × 3</span></div>
+        <div class="node-desc">Параллельно загружает статистику: общий счёт, историю проверок, список ТЗ.</div>
+        <div class="node-config">
+          3a: <span>GET /rest/v1/checks?user_id=eq.{{uid}}&select=*&order=created_at.desc&limit=20</span><br>
+          3b: <span>GET /rest/v1/tz_docs?user_id=eq.{{uid}}&select=id,title,created_at</span><br>
+          3c: <span>GET /rest/v1/checks?user_id=eq.{{uid}}&select=score&order=created_at.desc&limit=100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📦</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">4</span> Format Response <span class="node-type">Code</span></div>
+        <div class="node-desc">Собирает данные в единый JSON для отправки в браузер.</div>
+        <div class="node-config">
+          <span>return [{json: {
+  checks: $('Fetch Checks').all().map(i => i.json),
+  tz_list: $('Fetch TZ').all().map(i => i.json),
+  avg_score: /* среднее из scores */,
+  total_checks: checks.length
+}}];</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="node-card">
+      <div class="node-icon">📤</div>
+      <div class="node-body">
+        <div class="node-name"><span class="node-num">5</span> Respond to Webhook <span class="node-type">Respond to Webhook</span></div>
+        <div class="node-desc">Отправляет JSON-ответ браузеру с CORS заголовками.</div>
+        <div class="node-config">
+          Нода: <span>Respond to Webhook</span><br>
+          Response Body: <span>{{$json}}</span><br>
+          Response Code: <span>200</span><br>
+          Headers: <span>Access-Control-Allow-Origin: *</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ДЕПЛОЙ ── -->
+<div class="section" id="deploy">
+  <h2><span class="num">08</span> Деплой: GitHub Pages + n8n</h2>
+
+  <h3>Настройка n8n</h3>
+  <p>Самый простой путь — n8n.cloud (бесплатный план до 5 воркфлоу и 2 500 выполнений/мес).</p>
+  <ol class="steps-list">
+    <li>Зайди на <strong>n8n.cloud</strong> → Sign Up → создай аккаунт</li>
+    <li>Создай каждый из 5 воркфлоу как описано выше</li>
+    <li>Для Telegram: Settings → <strong>Telegram API Credential</strong> → вставь Bot Token</li>
+    <li>Для Supabase: в каждой HTTP Request ноде добавь заголовки <strong>apikey</strong> и <strong>Authorization: Bearer [SUPABASE_ANON_KEY]</strong></li>
+    <li>Активируй все воркфлоу (кнопка Active в правом верхнем углу)</li>
+  </ol>
+
+  <h3>Настройка Telegram бота</h3>
+  <ol class="steps-list">
+    <li>Напиши <strong>@BotFather</strong> → /newbot → получи токен</li>
+    <li>Активируй вебхук: вставь в браузер URL:<br>
+    <code style="font-size:0.75rem">https://api.telegram.org/bot[TOKEN]/setWebhook?url=https://[n8n-host]/webhook/[webhook-path]</code></li>
+    <li>Команды бота → /setcommands → установи: <code>start - Начать, upload_tz - Загрузить ТЗ, check - Проверить пост, stats - Статистика</code></li>
+  </ol>
+
+  <h3>GitHub Pages (лендинг + UI)</h3>
+  <ol class="steps-list">
+    <li>Создай репозиторий на GitHub (например <strong>tzchecker</strong>)</li>
+    <li>Загрузи <strong>landing.html</strong> как <code>index.html</code> и <strong>ui.html</strong> как <code>dashboard.html</code></li>
+    <li>В <code>dashboard.html</code> замени URL вебхука дашборда на твой n8n URL:<br>
+    <code style="font-size:0.75rem">fetch('https://[n8n-host]/webhook/dashboard?initData=...')</code></li>
+    <li>Settings → Pages → Branch: main → Save. Сайт появится на <strong>[username].github.io/tzchecker</strong></li>
+  </ol>
+
+  <div class="callout warn">
+    <strong>Self-hosted n8n:</strong> Если хочешь неограниченное количество выполнений — установи n8n на любой VPS (Digital Ocean $4/мес, Oracle Cloud бесплатно). Команда: <code>docker run -d -p 5678:5678 n8nio/n8n</code>. Затем открой ngrok или настрой nginx для публичного URL.
+  </div>
+</div>
+
+<!-- ── АВТОРИЗАЦИЯ ── -->
+<div class="section" id="auth">
+  <h2><span class="num">09</span> Авторизация через Telegram WebApp</h2>
+  <p>Чтобы пользователь dashboard.html видел только свои данные — используем Telegram Login Widget или Telegram WebApp initData.</p>
+
+  <h3>Вариант A: Telegram WebApp (проще)</h3>
+  <p>В dashboard.html добавить в <code>&lt;head&gt;</code>:</p>
+  <div class="code-block">
+    <pre><span class="str">&lt;script src="https://telegram.org/js/telegram-web-app.js"&gt;&lt;/script&gt;</span>
+<span class="str">&lt;script&gt;</span>
+  <span class="com">// Telegram заполняет window.Telegram.WebApp.initData автоматически</span>
+  <span class="kw">const</span> initData = window.Telegram.WebApp.initData;
+  <span class="kw">const</span> user = window.Telegram.WebApp.initDataUnsafe.user;
+
+  <span class="com">// Передаём initData в n8n для верификации</span>
+  <span class="fn">fetch</span>(<span class="str">`https://[n8n]/webhook/dashboard?initData=${encodeURIComponent(initData)}`</span>)
+    .<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+    .<span class="fn">then</span>(data => <span class="fn">renderDashboard</span>(data));
+<span class="str">&lt;/script&gt;</span></pre>
+  </div>
+
+  <h3>Вариант B: Telegram Login Widget</h3>
+  <p>Добавь на лендинге кнопку входа через Telegram. Пользователь кликает → Telegram верифицирует → на твой URL приходят данные пользователя с подписью.</p>
+
+  <div class="code-block">
+    <pre><span class="str">&lt;script async src="https://telegram.org/js/telegram-widget.js"
+  data-telegram-login="[BOT_USERNAME]"
+  data-size="large"
+  data-auth-url="https://[n8n-host]/webhook/tg-auth"
+  data-request-access="write"&gt;
+&lt;/script&gt;</span></pre>
+  </div>
+</div>
+
+<!-- ── ЧЕКЛИСТ КРИТЕРИЕВ ── -->
+<div class="section" id="checklist">
+  <h2><span class="num">10</span> Чеклист 12 критериев проекта</h2>
+  <p>Убедись, что все пункты из задания реализованы перед сдачей:</p>
+
+  <table class="comparison">
+    <thead>
+      <tr><th>#</th><th>Критерий</th><th>Реализация в нашем плане</th><th>Балл</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>Продукт решает прикладную задачу</td><td>Проверка постов блогеров на соответствие ТЗ — чёткая прикладная задача</td><td>✅</td></tr>
+      <tr><td>2</td><td>Вайб-кодинг, не классическая разработка</td><td>Весь бэкенд — n8n ноды, никакого кастомного сервера</td><td>✅</td></tr>
+      <tr><td>3</td><td>Использовать LLM</td><td>DeepSeek API — бесплатная замена Claude API</td><td>✅</td></tr>
+      <tr><td>4</td><td>Интеграция с ТГ-ботом</td><td>Воркфлоу 1 — Telegram Trigger + Send Message</td><td>✅</td></tr>
+      <tr><td>5</td><td>Лендинг</td><td>landing.html на GitHub Pages</td><td>✅</td></tr>
+      <tr><td>6</td><td>Веб-страница (User Interface)</td><td>ui.html / dashboard.html на GitHub Pages</td><td>✅</td></tr>
+      <tr><td>7</td><td>Авторизация</td><td>Telegram WebApp initData (Раздел 09)</td><td>✅</td></tr>
+      <tr><td>8</td><td>RAG-ассистент</td><td>Воркфлоу 2 (индексация) + Воркфлоу 3 (поиск) + Jina + pgvector</td><td>✅</td></tr>
+      <tr><td>9</td><td>База данных</td><td>Supabase PostgreSQL — 5 таблиц + pgvector</td><td>✅</td></tr>
+      <tr><td>10</td><td>Голосовой ввод (STT)</td><td>Воркфлоу 4 — Groq Whisper API (бесплатно)</td><td>✅</td></tr>
+      <tr><td>11</td><td>Дашборд со статистикой</td><td>Воркфлоу 5 + ui.html с графиками истории проверок</td><td>✅</td></tr>
+      <tr><td>12</td><td>Аналитика воронки</td><td>Таблица analytics_events + PostHog free tier</td><td>✅</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>PostHog для воронки:</strong> В каждом воркфлоу добавь HTTP Request ноду после ключевых действий. POST на <code>https://app.posthog.com/capture/</code> с <code>{"event": "tz_uploaded", "distinct_id": tg_id}</code>. API ключ бесплатный, до 1M событий/мес.
+  </div>
+
+  <h3>Порядок сборки (рекомендуется)</h3>
+  <ol class="steps-list">
+    <li><strong>Supabase:</strong> создай проект → выполни SQL-скрипт из Раздела 02</li>
+    <li><strong>Зарегистрируй:</strong> DeepSeek API key, Jina API key, Groq API key</li>
+    <li><strong>n8n.cloud:</strong> создай аккаунт, добавь Credentials для Telegram, Supabase, DeepSeek</li>
+    <li><strong>Воркфлоу 1</strong> (роутер) → протестируй /start в боте</li>
+    <li><strong>Воркфлоу 2</strong> (загрузка ТЗ) → протестируй /upload_tz</li>
+    <li><strong>Воркфлоу 3</strong> (проверка) → протестируй /check — это ядро проекта</li>
+    <li><strong>Воркфлоу 4</strong> (голос) → запиши голосовое и проверь транскрипцию</li>
+    <li><strong>GitHub Pages:</strong> загрузи landing.html и ui.html</li>
+    <li><strong>Воркфлоу 5</strong> (дашборд) → подключи к ui.html</li>
+    <li><strong>PostHog:</strong> добавь трекинг событий в ключевые воркфлоу</li>
+  </ol>
+</div>
+
+</main>
+</div>
+
+<script>
+// Highlight active section in sidebar
+const sections = document.querySelectorAll('.section');
+const links = document.querySelectorAll('.sidebar a');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.sidebar a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
