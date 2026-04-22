@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТЗ-Чекер | Проверка постов блогеров</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0a0a0f;
+    --paper: #f5f3ee;
+    --accent: #e8ff3c;
+    --accent2: #3cffe8;
+    --mid: #1e1e2e;
+    --muted: #8888a0;
+    --border: rgba(255,255,255,0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Manrope', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 100; opacity: 0.35;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 0 clamp(1.5rem, 5vw, 5rem);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,255,60,0.12) 0%, transparent 70%);
+    top: -200px; right: -100px;
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+  }
+  .hero-glow2 {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(60,255,232,0.08) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+    pointer-events: none;
+    animation: pulse 8s ease-in-out infinite reverse;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    position: relative; z-index: 10;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+  }
+  .logo span { color: var(--accent); }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--paper); }
+  nav ul { display: flex; gap: 2.5rem; list-style: none; }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5rem 0 4rem;
+    max-width: 780px;
+    position: relative; z-index: 10;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(232,255,60,0.1);
+    border: 1px solid rgba(232,255,60,0.25);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 1rem;
+    border-radius: 2rem;
+    margin-bottom: 2rem;
+    width: fit-content;
+    animation: fadeInUp 0.6s ease both;
+  }
+  .badge::before { content: '◆'; font-size: 0.6rem; }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    animation: fadeInUp 0.6s 0.1s ease both;
+  }
+  h1 .line2 { color: var(--accent); }
+  h1 .line3 { -webkit-text-stroke: 1px var(--paper); color: transparent; }
+
+  .hero-desc {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 520px;
+    font-weight: 400;
+    animation: fadeInUp 0.6s 0.2s ease both;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 1rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.6s 0.3s ease both;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--accent);
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1rem 2rem;
+    border: none; cursor: pointer;
+    text-decoration: none;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    transition: transform 0.15s, background 0.15s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); background: #f0ff60; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: transparent;
+    color: var(--paper);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    padding: 1rem 2rem;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    position: relative; z-index: 10;
+    animation: fadeInUp 0.6s 0.4s ease both;
+  }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HOW IT WORKS ── */
+  section { padding: clamp(4rem, 8vw, 8rem) clamp(1.5rem, 5vw, 5rem); }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  .step {
+    background: var(--ink);
+    padding: 2.5rem 2rem;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .step:hover { background: var(--mid); }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 5rem;
+    line-height: 1;
+    color: rgba(255,255,255,0.05);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+  }
+
+  .step-icon {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  .step h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .step p { font-size: 0.9rem; color: var(--muted); }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 4rem;
+  }
+
+  .feature-card {
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-4px); border-color: rgba(232,255,60,0.2); }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon { font-size: 1.8rem; margin-bottom: 1.2rem; }
+  .feature-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+  .feature-card p { font-size: 0.88rem; color: var(--muted); }
+
+  /* ── N8N WORKFLOW ── */
+  .workflow-section {
+    background: var(--mid);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .workflow-diagram {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 3rem 0;
+    margin-top: 3rem;
+  }
+
+  .wf-node {
+    flex-shrink: 0;
+    background: var(--ink);
+    border: 1px solid var(--border);
+    padding: 1rem 1.4rem;
+    min-width: 130px;
+    text-align: center;
+    position: relative;
+  }
+  .wf-node.accent-node { border-color: rgba(232,255,60,0.4); }
+  .wf-node.accent2-node { border-color: rgba(60,255,232,0.4); }
+
+  .wf-icon { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+  .wf-label { font-size: 0.75rem; font-weight: 600; }
+  .wf-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.25rem; }
+
+  .wf-arrow {
+    flex-shrink: 0;
+    color: var(--muted);
+    font-size: 1.2rem;
+    padding: 0 0.5rem;
+  }
+
+  /* ── PRICING ── */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 4rem;
+  }
+
+  .plan {
+    background: var(--mid);
+    border: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .plan.featured {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(232,255,60,0.05), var(--mid));
+  }
+  .plan-badge {
+    position: absolute;
+    top: -1px; right: 2rem;
+    background: var(--accent);
+    color: var(--ink);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+  }
+
+  .plan-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .plan-price { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; line-height: 1; margin: 0.75rem 0; }
+  .plan-price span { font-size: 1.2rem; }
+  .plan-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+  .plan-features { list-style: none; }
+  .plan-features li { font-size: 0.88rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); display: flex; gap: 0.6rem; }
+  .plan-features li::before { content: '✓'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,255,60,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .cta-section h2 { position: relative; }
+  .cta-section p { color: var(--muted); max-width: 500px; margin: 1rem auto 3rem; font-size: 1.05rem; position: relative; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem clamp(1.5rem, 5vw, 5rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  footer p { font-size: 0.8rem; color: var(--muted); }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--accent);
+    color: var(--ink);
+    padding: 0.7rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-flex;
+    gap: 3rem;
+    animation: ticker 20s linear infinite;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+
+  <nav>
+    <div class="logo">ТЗ<span>·</span>Чекер</div>
+    <ul>
+      <li><a href="#how">Как работает</a></li>
+      <li><a href="#features">Возможности</a></li>
+      <li><a href="#pricing">Тарифы</a></li>
+    </ul>
+    <a href="#cta" class="btn-primary">Запустить бота →</a>
+  </nav>
+
+  <div class="hero-content">
+    <div class="badge">AI-powered · n8n workflow</div>
+    <h1>
+      Проверяй<br>
+      <span class="line2">посты</span><br>
+      <span class="line3">мгновенно</span>
+    </h1>
+    <p class="hero-desc">Загружаешь ТЗ один раз — бот проверяет каждый пост блогера на соответствие всем пунктам. Чёткий отчёт за секунды.</p>
+    <div class="hero-cta">
+      <a href="#cta" class="btn-primary">🤖 Открыть в Telegram</a>
+      <a href="#how" class="btn-ghost">Как это работает</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">12</div>
+      <div class="stat-label">Критериев проверки</div>
+    </div>
+    <div>
+      <div class="stat-num">&lt;5с</div>
+      <div class="stat-label">Время анализа</div>
+    </div>
+    <div>
+      <div class="stat-num">RAG</div>
+      <div class="stat-label">Движок проверки</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>◆ ПРОВЕРКА ТЗ</span><span>◆ AI-АНАЛИЗ</span><span>◆ TELEGRAM BOT</span><span>◆ RAG АССИСТЕНТ</span><span>◆ N8N WORKFLOW</span><span>◆ ГОЛОСОВОЙ ВВОД</span><span>◆ ПРОВЕРКА ТЗ</span><span>◆ AI-АНАЛИЗ</span><span>◆ TELEGRAM BOT</span><span>◆ RAG АССИСТЕНТ</span><span>◆ N8N WORKFLOW</span><span>◆ ГОЛОСОВОЙ ВВОД</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-label">→ Процесс</div>
+  <h2>Три шага<br>до результата</h2>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">01</span>
+      <span class="step-icon">📄</span>
+      <h3>Загрузи ТЗ</h3>
+      <p>Отправь техническое задание боту один раз. Он сохранит его как эталон для всех последующих проверок.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">02</span>
+      <span class="step-icon">✍️</span>
+      <h3>Вставь пост</h3>
+      <p>Скопируй текст поста блогера и отправь командой /check. Поддерживается текст, голосовое сообщение и документ.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">03</span>
+      <span class="step-icon">✅</span>
+      <h3>Получи отчёт</h3>
+      <p>Бот выдаёт пункт за пунктом: что выполнено, что нет, и краткое объяснение по каждому критерию.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">04</span>
+      <span class="step-icon">📊</span>
+      <h3>Смотри дашборд</h3>
+      <p>Вся история проверок, статистика по блогерам и воронка — в едином дашборде в режиме реального времени.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" style="padding-top: 0;">
+  <div class="section-label">→ Возможности</div>
+  <h2>Всё, что нужно<br>для контроля</h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>RAG-ассистент</h3>
+      <p>Технзадание хранится в векторной базе данных. Каждая проверка делается через семантический поиск — бот понимает смысл, а не ищет слова.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎙️</div>
+      <h3>Голосовой ввод</h3>
+      <p>Надиктуй пост голосом — бот автоматически распознает речь через Whisper и запустит проверку.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>Авторизация</h3>
+      <p>Telegram Login Widget — вход без пароля. Каждый пользователь видит только свои проверки и свою историю.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗄️</div>
+      <h3>База данных</h3>
+      <p>Supabase хранит все ТЗ, результаты проверок и пользователей. Полная история и возможность аналитики.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>n8n воркфлоу</h3>
+      <p>Вся логика собрана визуально в n8n без единой строчки серверного кода. Легко менять и масштабировать.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>Аналитика воронки</h3>
+      <p>PostHog отслеживает каждое действие пользователя. Смотри, где отваливаются блогеры и что улучшить.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="workflow-section" style="padding: clamp(4rem,8vw,8rem) clamp(1.5rem,5vw,5rem);">
+  <div class="section-label">→ Архитектура</div>
+  <h2>n8n воркфлоу<br>под капотом</h2>
+
+  <div class="workflow-diagram">
+    <div class="wf-node accent-node">
+      <span class="wf-icon">📱</span>
+      <div class="wf-label">Telegram</div>
+      <div class="wf-sub">Trigger</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <span class="wf-icon">🔀</span>
+      <div class="wf-label">Router</div>
+      <div class="wf-sub">Switch</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <span class="wf-icon">🗄️</span>
+      <div class="wf-label">Supabase</div>
+      <div class="wf-sub">Get TZ</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node accent2-node">
+      <span class="wf-icon">🧠</span>
+      <div class="wf-label">Claude API</div>
+      <div class="wf-sub">Analyze</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <span class="wf-icon">📝</span>
+      <div class="wf-label">Format</div>
+      <div class="wf-sub">Set Node</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node">
+      <span class="wf-icon">💾</span>
+      <div class="wf-label">Save</div>
+      <div class="wf-sub">Supabase</div>
+    </div>
+    <div class="wf-arrow">→</div>
+    <div class="wf-node accent-node">
+      <span class="wf-icon">📤</span>
+      <div class="wf-label">Reply</div>
+      <div class="wf-sub">Telegram</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">→ Тарифы</div>
+  <h2>Простые<br>и честные цены</h2>
+
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">Старт</div>
+      <div class="plan-price"><span>₽</span>0</div>
+      <div class="plan-desc">Попробуй бесплатно</div>
+      <ul class="plan-features">
+        <li>10 проверок в месяц</li>
+        <li>1 ТЗ</li>
+        <li>Базовый отчёт</li>
+        <li>История 7 дней</li>
+      </ul>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">Популярный</div>
+      <div class="plan-name">Про</div>
+      <div class="plan-price"><span>₽</span>990</div>
+      <div class="plan-desc">в месяц</div>
+      <ul class="plan-features">
+        <li>Неограниченные проверки</li>
+        <li>До 10 ТЗ</li>
+        <li>Голосовой ввод</li>
+        <li>Дашборд аналитики</li>
+        <li>Приоритетный ответ</li>
+      </ul>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Агентство</div>
+      <div class="plan-price"><span>₽</span>2990</div>
+      <div class="plan-desc">в месяц</div>
+      <ul class="plan-features">
+        <li>Всё из Про</li>
+        <li>Командный доступ</li>
+        <li>Неограниченные ТЗ</li>
+        <li>API доступ</li>
+        <li>Whitelabel</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="cta-section">
+  <div class="section-label" style="text-align:center">→ Начать</div>
+  <h2>Готов проверить<br>первый пост?</h2>
+  <p>Запусти бота в Telegram — настройка займёт меньше минуты.</p>
+  <a href="#" class="btn-primary" style="margin: 0 auto; display:inline-flex; font-size: 1rem; padding: 1.2rem 3rem;">
+    🤖 Запустить @tzchecker_bot
+  </a>
+</section>
+
+<footer>
+  <div class="logo">ТЗ<span style="color:var(--accent)">·</span>Чекер</div>
+  <p>Собрано на n8n · Claude API · Supabase · Flowise</p>
+  <p>2025 · МагоЛего</p>
+</footer>
+
+</body>
+</html>
